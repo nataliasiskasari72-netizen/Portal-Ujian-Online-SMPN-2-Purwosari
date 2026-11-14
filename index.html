@@ -1,0 +1,1020 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portal Ujian Online - SMP Negeri 2 Purwosari</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        softgreen: {
+                            50: '#f2f9f5',
+                            100: '#e1f2e8',
+                            200: '#c5e5d3',
+                            300: '#9cd2b4',
+                            400: '#6eb890',
+                            500: '#4a9c71',
+                            600: '#387e59',
+                            700: '#2f6549',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #f2f9f5;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .form-iframe {
+            width: 100%;
+            height: calc(100vh - 120px);
+            border: none;
+        }
+    </style>
+</head>
+<body class="min-h-screen text-gray-800 flex flex-col justify-between">
+
+    <!-- Navbar HEADER -->
+    <header class="bg-white border-b border-softgreen-200 shadow-sm sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <img src="https://lh3.googleusercontent.com/d/15XCcHr5jFCbmHTY8WkcUOXGvJIUB62iH"  alt="Logo SMPN 2 Purwosari" class="h-12 w-auto object-contain">
+                <div>
+                    <h1 class="text-lg font-bold text-softgreen-700 leading-tight">SMP NEGERI 2 PURWOSARI</h1>
+                    <p class="text-xs text-gray-500">System Assessment & Evaluation CBT</p>
+                </div>
+            </div>
+            
+            <div id="userInfoHeader" class="hidden flex items-center gap-4">
+                <div class="text-right">
+                    <p id="studentNameDisplay" class="font-semibold text-sm text-gray-700"></p>
+                    <p id="studentClassDisplay" class="text-xs text-softgreen-600 font-medium"></p>
+                </div>
+                <div id="violationCounter" class="bg-red-100 text-red-700 text-xs px-3 py-1.5 rounded-full font-bold flex items-center gap-1">
+                    <i data-lucide="shield-alert" class="w-4 h-4"></i> Pelanggaran: <span id="warnCount">0</span>/2
+                </div>
+                <button onclick="logout()" class="text-xs bg-gray-200 hover:bg-gray-300 px-3 py-1.5 rounded-lg transition">Keluar</button>
+            </div>
+        </div>
+    </header>
+
+    <!-- CONTAINER UTAMA -->
+    <main class="flex-grow flex items-center justify-center p-4">
+        
+        <!-- SECTION 1: LOGIN BOX -->
+        <div id="loginSection" class="w-full max-w-md bg-white rounded-2xl shadow-xl border border-softgreen-100 p-8 my-auto">
+            <div class="text-center mb-6">
+                <div class="w-20 h-20 bg-softgreen-50 rounded-full flex items-center justify-center mx-auto mb-3 border border-softgreen-200">
+                    <i data-lucide="graduation-cap" class="w-10 h-10 text-softgreen-600"></i>
+                </div>
+                <h2 class="text-xl font-bold text-gray-800">Masuk Portal Ujian</h2>
+                <p class="text-xs text-gray-500 mt-1">Gunakan NIS dan Token yang telah diberikan wali kelas</p>
+            </div>
+
+            <form id="loginForm" onsubmit="handleLogin(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold text-gray-600 mb-1">Nomor Induk Siswa (NIS)</label>
+                    <div class="relative">
+                        <i data-lucide="user" class="w-5 h-5 absolute left-3 top-2.5 text-gray-400"></i>
+                        <input type="text" id="nisInput" required placeholder="Masukkan NIS Anda" 
+                            class="w-full pl-10 pr-4 py-2 text-sm border border-gray-300 rounded-xl focus:ring-2 focus:ring-softgreen-400 focus:border-softgreen-400 outline-none transition">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-gray-600 mb-1">Token Ujian</label>
+                    <div class="relative">
+                        <i data-lucide="key-round" class="w-5 h-5 absolute left-3 top-2.5 text-gray-400"></i>
+                        <input type="password" id="tokenInput" required placeholder="Masukkan Token" 
+                            class="w-full pl-10 pr-4 py-2 text-sm border border-gray-300 rounded-xl focus:ring-2 focus:ring-softgreen-400 focus:border-softgreen-400 outline-none transition">
+                    </div>
+                </div>
+
+                <div id="loginError" class="hidden text-xs text-red-600 bg-red-50 p-2.5 rounded-lg border border-red-200 text-center"></div>
+
+                <button type="submit" 
+                    class="w-full bg-softgreen-600 hover:bg-softgreen-700 text-white font-semibold py-2.5 rounded-xl transition duration-200 shadow-md hover:shadow-lg flex items-center justify-center gap-2">
+                    <i data-lucide="log-in" class="w-4 h-4"></i> Masuk Ujian
+                </button>
+            </form>
+        </div>
+
+        <!-- SECTION 2: DASHBOARD MAPEL (Setelah Login) -->
+        <div id="dashboardSection" class="hidden w-full max-w-4xl bg-white rounded-2xl shadow-xl border border-softgreen-100 p-6">
+            <div class="mb-6 pb-4 border-b border-gray-100">
+                <h2 class="text-xl font-bold text-gray-800">Daftar Ujian Mata Pelajaran</h2>
+                <p class="text-xs text-gray-500">Silakan pilih mata pelajaran yang akan dikerjakan sesuai jadwal.</p>
+            </div>
+
+            <!-- Warning Alert Rules -->
+            <div class="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-6 flex items-start gap-3 text-amber-800 text-xs">
+                <i data-lucide="alert-triangle" class="w-5 h-5 flex-shrink-0 text-amber-600"></i>
+                <div>
+                    <p class="font-bold mb-0.5">Peraturan Keamanan Ujian:</p>
+                    <p>Dilarang berpindah tab, membuka jendela lain, atau meninggalkan browser. Maksimal pelanggaran adalah <strong>2 kali</strong>. Jika dilanggar, ujian akan otomatis terkunci.</p>
+                </div>
+            </div>
+
+            <!-- List Mapel Cards -->
+            <div class="grid md:grid-cols-3 gap-4" id="mapelListContainer">
+                <!-- Dynamic Content Generated by JS -->
+            </div>
+        </div>
+
+        <!-- SECTION 3: EMBED GOOGLE FORM (Tampilan Soal Ujian) -->
+        <div id="examSection" class="hidden w-full h-full flex flex-col">
+            <div class="bg-white p-3 border-b border-softgreen-200 flex justify-between items-center px-6">
+                <button onclick="backToDashboard()" class="text-xs bg-softgreen-100 text-softgreen-700 px-3 py-1.5 rounded-lg font-medium hover:bg-softgreen-200 transition flex items-center gap-1">
+                    <i data-lucide="arrow-left" class="w-4 h-4"></i> Kembali ke Menu Mapel
+                </button>
+                <div class="text-xs text-gray-500 font-semibold" id="activeMapelTitle">
+                    Mata Pelajaran Ujian
+                </div>
+            </div>
+            <iframe id="googleFormIframe" class="form-iframe" src="" frameborder="0">Loading...</iframe>
+        </div>
+
+        <!-- SECTION ADMIN PORTAL -->
+        <section id="adminSection" class="hidden w-full max-w-6xl bg-white rounded-2xl shadow-xl border border-softgreen-100 p-4 sm:p-6 my-auto">
+          <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-5 pb-4 border-b border-gray-100">
+            <div><h2 class="text-xl font-bold text-gray-800">Portal Admin Ujian</h2><p class="text-xs text-gray-500 mt-1">Kelola jadwal dan tautan Google Form yang digunakan seluruh peserta.</p></div>
+            <button type="button" onclick="adminLogout()" class="self-start text-xs bg-gray-200 hover:bg-gray-300 px-3 py-2 rounded-lg">Keluar Admin</button>
+          </div>
+          <div id="adminMessage" class="hidden text-sm p-3 rounded-lg mb-4" role="status"></div>
+          <!-- ADMIN MATRIKS INPUT MASSAL -->
+          <section class="mb-7 rounded-2xl border-2 border-blue-100 bg-blue-50/50 p-4 sm:p-5">
+            <div class="mb-4"><h3 class="text-lg font-bold text-blue-900">Matriks Jadwal Massal · 11 Mapel × 3 Tingkat</h3><p class="mt-1 text-xs text-gray-600">Atur tanggal dan sesi waktu bersama. Isi URL EDIT Google Form pada kolom tingkat kelas; sistem akan mengarahkan respons ke spreadsheet pusat; kelas paralel A/B otomatis menggunakan jadwal tingkat yang sama. Sel kosong tidak disimpan.</p></div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 mb-4">
+              <label class="text-xs font-semibold text-gray-700">Tanggal ujian<input id="mxDate" type="date" required class="mt-1 w-full rounded-lg border border-gray-300 bg-white p-2 text-sm"></label>
+              <label class="text-xs font-semibold text-gray-700">Sesi bersama<input id="mxSession" type="number" min="1" max="20" value="1" required class="mt-1 w-full rounded-lg border border-gray-300 bg-white p-2 text-sm"></label>
+              <label class="text-xs font-semibold text-gray-700">Mulai (WIB)<input id="mxStart" type="time" value="07:30" required class="mt-1 w-full rounded-lg border border-gray-300 bg-white p-2 text-sm"></label>
+              <label class="text-xs font-semibold text-gray-700">Selesai (WIB)<input id="mxEnd" type="time" value="09:00" required class="mt-1 w-full rounded-lg border border-gray-300 bg-white p-2 text-sm"></label>
+              <label class="flex items-center gap-2 self-end rounded-lg bg-white p-2 text-sm text-gray-700"><input id="mxEnabled" type="checkbox" checked class="h-4 w-4"> Jadwal aktif</label>
+            </div>
+            <div class="overflow-x-auto rounded-xl border border-blue-100 bg-white"><table class="min-w-[850px] w-full text-xs text-left"><thead class="bg-blue-100 text-blue-950"><tr><th class="p-3 w-48">Mata Pelajaran</th><th class="p-3">Kelas VII · 7A &amp; 7B</th><th class="p-3">Kelas VIII · 8A &amp; 8B</th><th class="p-3">Kelas IX · 9A &amp; 9B</th></tr></thead><tbody id="matrixRows"></tbody></table></div>
+            <div class="mt-4 flex flex-wrap gap-2"><button type="button" onclick="saveAdminMatrix()" id="matrixSaveBtn" class="rounded-lg bg-blue-700 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-800">Simpan Matriks Massal</button><button type="button" onclick="clearAdminMatrix()" class="rounded-lg bg-white px-4 py-2 text-sm hover:bg-gray-100">Kosongkan URL</button><button type="button" onclick="loadMatrixFromSchedules()" class="rounded-lg bg-white px-4 py-2 text-sm hover:bg-gray-100">Muat URL dari Jadwal Tersimpan</button></div>
+            <p id="matrixInfo" class="mt-3 text-xs text-gray-600"></p>
+          </section>
+          <form id="scheduleForm" onsubmit="saveAdminSchedule(event)" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            <input type="hidden" id="editRow" value="">
+            <label class="text-xs font-semibold text-gray-600">Tanggal ujian<input id="admDate" type="date" required class="mt-1 w-full border border-gray-300 rounded-lg p-2 text-sm"></label>
+            <label class="text-xs font-semibold text-gray-600">Kelas<select id="admClass" required class="mt-1 w-full border border-gray-300 rounded-lg p-2 text-sm"><option value="7">Kelas 7 (7A &amp; 7B)</option><option value="8">Kelas 8 (8A &amp; 8B)</option><option value="9">Kelas 9 (9A &amp; 9B)</option></select></label>
+            <label class="text-xs font-semibold text-gray-600">Mata pelajaran<input id="admTitle" required maxlength="100" placeholder="Contoh: Matematika" class="mt-1 w-full border border-gray-300 rounded-lg p-2 text-sm"></label>
+            <label class="text-xs font-semibold text-gray-600">ID Mapel<input id="admSubjectId" required maxlength="40" placeholder="Contoh: matematika" class="mt-1 w-full border border-gray-300 rounded-lg p-2 text-sm"></label>
+            <label class="text-xs font-semibold text-gray-600">Mulai (WIB)<input id="admStart" type="time" required class="mt-1 w-full border border-gray-300 rounded-lg p-2 text-sm"></label>
+            <label class="text-xs font-semibold text-gray-600">Selesai (WIB)<input id="admEnd" type="time" required class="mt-1 w-full border border-gray-300 rounded-lg p-2 text-sm"></label>
+            <label class="text-xs font-semibold text-gray-600">Sesi<input id="admSession" type="number" min="1" max="20" value="1" required class="mt-1 w-full border border-gray-300 rounded-lg p-2 text-sm"></label>
+            <label class="text-xs font-semibold text-gray-600 sm:col-span-2">URL EDIT Google Form<input id="admUrl" type="url" placeholder="https://docs.google.com/forms/d/ID_FORM/edit" class="mt-1 w-full border border-gray-300 rounded-lg p-2 text-sm"></label>
+            <label class="flex items-center gap-2 text-sm text-gray-700"><input id="admEnabled" type="checkbox" checked class="w-4 h-4"> Jadwal aktif</label>
+            <div class="sm:col-span-2 lg:col-span-3 flex flex-wrap gap-2 pt-2"><button id="adminSaveBtn" type="submit" class="bg-softgreen-600 hover:bg-softgreen-700 text-white px-4 py-2 rounded-lg text-sm font-semibold">Simpan Jadwal</button><button type="button" onclick="resetAdminForm()" class="bg-gray-100 hover:bg-gray-200 px-4 py-2 rounded-lg text-sm">Form Baru</button><button type="button" onclick="loadAdminRows()" class="bg-blue-50 hover:bg-blue-100 text-blue-700 px-4 py-2 rounded-lg text-sm">Muat Ulang</button></div>
+          </form>
+          <div class="mt-6"><h3 class="font-bold text-gray-800 mb-2">Jadwal tersimpan</h3><div class="overflow-x-auto border border-gray-200 rounded-xl"><table class="min-w-full text-xs text-left"><thead class="bg-softgreen-50 text-gray-700"><tr><th class="p-3">Tanggal</th><th class="p-3">Kelas</th><th class="p-3">Mapel</th><th class="p-3">Jam</th><th class="p-3">Status</th><th class="p-3">Aksi</th></tr></thead><tbody id="adminRows"><tr><td colspan="6" class="p-4 text-gray-500">Memuat jadwal...</td></tr></tbody></table></div></div>
+          <p class="text-xs text-gray-500 mt-3">Perubahan disimpan di Google Sheets dan akan dibaca oleh semua peserta. Waktu menggunakan zona WIB perangkat.</p>
+
+          <!-- PENGATURAN SUMBER GOOGLE FORM -->
+          <div class="mt-8 pt-6 border-t-2 border-softgreen-100">
+            <h3 class="text-lg font-bold text-gray-800">Pengaturan Respons Google Form</h3>
+            <p class="text-xs text-gray-500 mt-1">Atur spreadsheet tujuan respons Google Form. Spreadsheet ini boleh berbeda dari database portal. Setiap tab dapat dipetakan sendiri, termasuk tab khusus satu mapel maupun tab gabungan.</p>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mt-4">
+              <label class="text-xs font-semibold text-gray-600 md:col-span-2">ID Spreadsheet Respons Google Form
+                <input id="respSpreadsheetId" class="mt-1 w-full border border-gray-300 rounded-lg p-2 text-sm" placeholder="Tempel ID dari URL spreadsheet respons">
+              </label>
+              <div class="flex items-end"><button type="button" onclick="inspectResponseTabs()" class="w-full bg-blue-600 hover:bg-blue-700 text-white rounded-lg p-2 text-sm font-semibold">Periksa Koneksi & Tab</button></div>
+            </div>
+            <div id="responseDbInfo" class="text-xs text-gray-500 mt-2"></div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mt-4 p-3 rounded-xl bg-gray-50 border border-gray-200">
+              <label class="text-xs font-semibold text-gray-600">Pilih Tab Respons<select id="respSheetName" class="mt-1 w-full border border-gray-300 rounded-lg p-2 text-sm"><option value="">Periksa koneksi terlebih dahulu</option></select></label>
+              <label class="text-xs font-semibold text-gray-600">Baris Header<input id="respHeaderRow" type="number" min="1" value="1" class="mt-1 w-full border border-gray-300 rounded-lg p-2 text-sm"></label>
+              <div class="flex items-end"><button type="button" onclick="inspectResponseHeaders()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg p-2 text-sm font-semibold">Baca Kolom Tab</button></div>
+              <label class="text-xs font-semibold text-gray-600">Kolom NIS<select id="respNisHeader" class="mt-1 w-full border border-gray-300 rounded-lg p-2 text-sm"><option value="">Baca kolom terlebih dahulu</option></select></label>
+              <label class="text-xs font-semibold text-gray-600">Kolom Waktu Kirim (opsional)<select id="respTimeHeader" class="mt-1 w-full border border-gray-300 rounded-lg p-2 text-sm"><option value="">Tidak digunakan</option></select></label>
+              <label class="text-xs font-semibold text-gray-600">Kolom Kelas (opsional)<select id="respClassHeader" class="mt-1 w-full border border-gray-300 rounded-lg p-2 text-sm"><option value="">Tidak digunakan</option></select></label>
+              <label class="text-xs font-semibold text-gray-600">Kolom Nilai (opsional)<select id="respScoreHeader" class="mt-1 w-full border border-gray-300 rounded-lg p-2 text-sm"><option value="">Tidak digunakan</option></select></label>
+              <label class="text-xs font-semibold text-gray-600">Cara mengenali mapel<select id="respSubjectMode" onchange="toggleSubjectMode()" class="mt-1 w-full border border-gray-300 rounded-lg p-2 text-sm"><option value="fixed">Tab ini hanya untuk satu mapel</option><option value="column">Mapel ada di kolom</option></select></label>
+              <label id="respFixedWrap" class="text-xs font-semibold text-gray-600">Nama Mapel pada Tab Ini<input id="respFixedSubject" placeholder="Contoh: Matematika" class="mt-1 w-full border border-gray-300 rounded-lg p-2 text-sm"></label>
+              <label id="respSubjectColWrap" class="hidden text-xs font-semibold text-gray-600">Kolom Mata Pelajaran<select id="respSubjectHeader" class="mt-1 w-full border border-gray-300 rounded-lg p-2 text-sm"><option value="">Baca kolom terlebih dahulu</option></select></label>
+              <div class="flex items-end"><button type="button" onclick="addResponseMapping()" class="w-full bg-softgreen-600 hover:bg-softgreen-700 text-white rounded-lg p-2 text-sm font-semibold">+ Tambahkan Tab Ini</button></div>
+            </div>
+            <div class="mt-4 overflow-x-auto border border-gray-200 rounded-xl">
+              <table class="min-w-full text-xs text-left"><thead class="bg-softgreen-50"><tr><th class="p-2">Tab</th><th class="p-2">NIS</th><th class="p-2">Mapel</th><th class="p-2">Nilai</th><th class="p-2">Header</th><th class="p-2">Aksi</th></tr></thead><tbody id="responseMappingRows"><tr><td colspan="6" class="p-3 text-gray-500">Belum ada tab yang dipetakan.</td></tr></tbody></table>
+            </div>
+            <div class="mt-3 flex flex-wrap gap-2"><button type="button" onclick="saveResponseConfig()" class="bg-softgreen-700 hover:bg-softgreen-800 text-white rounded-lg px-4 py-2 text-sm font-semibold">Simpan Pengaturan Respons</button><button type="button" onclick="loadResponseConfig()" class="bg-gray-100 hover:bg-gray-200 rounded-lg px-4 py-2 text-sm">Muat Pengaturan Tersimpan</button></div>
+          </div>
+
+          <!-- MONITORING PESERTA -->
+          <div class="mt-8 pt-6 border-t-2 border-softgreen-100">
+            <h3 class="text-lg font-bold text-gray-800">Monitoring Pengumpulan Jawaban</h3>
+            <p class="text-xs text-gray-500 mt-1">Status dihitung berdasarkan NIS siswa pada spreadsheet respons Google Form yang telah dipetakan di atas.</p>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-4">
+              <label class="text-xs font-semibold text-gray-600">Kelas<select id="monitorClass" class="mt-1 w-full border border-gray-300 rounded-lg p-2 text-sm"><option value="7A">7A</option><option value="7B">7B</option><option value="8A">8A</option><option value="8B">8B</option><option value="9A">9A</option><option value="9B">9B</option></select></label>
+              <label class="text-xs font-semibold text-gray-600">Mata Pelajaran<select id="monitorSubject" class="mt-1 w-full border border-gray-300 rounded-lg p-2 text-sm"><option value="">Muat jadwal terlebih dahulu</option></select></label>
+              <div class="flex items-end"><button type="button" onclick="runResponseMonitoring()" class="w-full bg-blue-600 hover:bg-blue-700 text-white rounded-lg p-2 text-sm font-semibold">Tampilkan Monitoring</button></div>
+            </div>
+            <div class="mt-4 flex flex-wrap items-center justify-between gap-2">
+              <div id="monitorSummary" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 flex-1"></div>
+              <button type="button" id="downloadMonitorBtn" onclick="downloadMonitoringCSV()" disabled class="rounded-lg bg-emerald-700 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-800 disabled:cursor-not-allowed disabled:opacity-40">⬇ Download Nilai (Excel/CSV)</button>
+            </div>
+            <div class="mt-3 overflow-x-auto border border-gray-200 rounded-xl"><table class="min-w-full text-xs text-left"><thead class="bg-softgreen-50"><tr><th class="p-3">No.</th><th class="p-3">NIS</th><th class="p-3">Nama Siswa</th><th class="p-3">Nilai</th><th class="p-3">Status</th><th class="p-3">Waktu Kirim</th><th class="p-3">Sumber Tab</th></tr></thead><tbody id="monitorRows"><tr><td colspan="6" class="p-4 text-gray-500">Pilih kelas dan mapel, lalu klik Tampilkan Monitoring.</td></tr></tbody></table></div>
+          </div>
+
+        </section>
+
+        <!-- MODAL WARNING / PERINGATAN KECURANGAN -->
+        <div id="warningModal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+            <div class="bg-white rounded-2xl max-w-sm w-full p-6 text-center shadow-2xl animate-bounce-once">
+                <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4 text-red-600">
+                    <i data-lucide="shield-alert" class="w-8 h-8"></i>
+                </div>
+                <h3 class="text-lg font-bold text-gray-800 mb-2">Peringatan Kecurangan!</h3>
+                <p class="text-xs text-gray-600 mb-4">Anda terdeteksi meninggalkan halaman ujian. Harap fokus pada soal!</p>
+                <div class="bg-red-50 text-red-700 text-xs p-3 rounded-xl mb-4 border border-red-200">
+                    Jumlah Pelanggaran: <span id="modalWarnCount" class="font-bold text-sm">1</span> / 2
+                </div>
+                <button onclick="closeWarningModal()" class="w-full bg-red-600 text-white font-semibold py-2 rounded-xl text-xs hover:bg-red-700 transition">
+                    Saya Mengerti & Lanjutkan Ujian
+                </button>
+            </div>
+        </div>
+
+        <!-- MODAL KUNCI UJIAN (Jika lebih dari 2x melanggar) -->
+        <div id="lockedModal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
+            <div class="bg-white rounded-2xl max-w-sm w-full p-6 text-center shadow-2xl">
+                <div class="w-16 h-16 bg-red-600 rounded-full flex items-center justify-center mx-auto mb-4 text-white">
+                    <i data-lucide="lock" class="w-8 h-8"></i>
+                </div>
+                <h3 class="text-lg font-bold text-gray-800 mb-2">Ujian Terkunci!</h3>
+                <p class="text-xs text-gray-600 mb-4">Anda telah melebihi batas toleransi pelanggaran (2 kali berpindah jendela). Akses ujian dihentikan.</p>
+                <p class="text-xs text-red-500 font-semibold mb-4">Silakan hubungi proktor / pengawas ujian untuk membuka kuncian.</p>
+            </div>
+        </div>
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="bg-white border-t border-softgreen-200 py-3 text-center text-xs text-gray-500">
+        &copy; 2026 SMP Negeri 2 Purwosari. System Powered by Kusworo.
+    </footer>
+
+    <!-- LOGIK PROSES JAVASCRIPT -->
+    <script>
+        // ================================================================
+        // CLOUDFLARE -> GOOGLE APPS SCRIPT JSONP BRIDGE
+        // Membuat google.script.run kompatibel melalui URL Web App /exec.
+        // ================================================================
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzP0MujyQTDE3PHXwNlxbjubpQ35jkmSnHx-a5zV3YK6j3dgxxCiFnNF3pwrmR66o5KJA/exec';
+        function portalJsonp(method, args, success, failure) {
+            const callbackName = 'portalCb_' + Date.now() + '_' + Math.floor(Math.random()*1000000);
+            const script = document.createElement('script');
+            let finished = false;
+            const cleanup = () => { if (script.parentNode) script.parentNode.removeChild(script); try { delete window[callbackName]; } catch (_) { window[callbackName] = undefined; } };
+            window[callbackName] = function(result) {
+                if (finished) return; finished = true; cleanup();
+                if (result && result.__portalError) { if (failure) failure({message:result.message||'Kesalahan backend Apps Script'}); }
+                else if (success) success(result);
+            };
+            script.onerror = function() { if (finished) return; finished=true; cleanup(); if (failure) failure({message:'Tidak dapat menghubungi Apps Script. Periksa URL deployment dan akses Web App.'}); };
+            const query = new URLSearchParams();
+            query.set('api', method); query.set('args', JSON.stringify(args || [])); query.set('callback', callbackName);
+            script.src = SCRIPT_URL + (SCRIPT_URL.includes('?')?'&':'?') + query.toString();
+            document.head.appendChild(script);
+        }
+        let portalSuccessHandler = null, portalFailureHandler = null;
+        const portalRunProxy = new Proxy({}, { get(_target, prop) {
+            if (prop === 'withSuccessHandler') return fn => { portalSuccessHandler = fn; return portalRunProxy; };
+            if (prop === 'withFailureHandler') return fn => { portalFailureHandler = fn; return portalRunProxy; };
+            if (prop === 'withUserObject') return () => portalRunProxy;
+            return (...args) => {
+                const ok = portalSuccessHandler, fail = portalFailureHandler;
+                portalSuccessHandler = null; portalFailureHandler = null;
+                // Bagi matriks besar menjadi paket kecil agar URL JSONP tidak terlalu panjang.
+                if (String(prop) === 'adminSaveScheduleBulk' && Array.isArray(args[1]) && args[1].length > 4) {
+                    const chunks=[]; for(let i=0;i<args[1].length;i+=4) chunks.push(args[1].slice(i,i+4));
+                    let index=0, added=0, updated=0, count=0;
+                    const next=()=>{ if(index>=chunks.length){if(ok)ok({ok:true,added,updated,count,message:'Matriks berhasil disimpan: '+added+' jadwal baru, '+updated+' jadwal diperbarui.'});return;}
+                        const pack=args.slice();pack[1]=chunks[index++];
+                        portalJsonp(String(prop),pack,res=>{if(!res||!res.ok){if(fail)fail({message:(res&&res.message)||'Penyimpanan matriks gagal.'});return;}added+=Number(res.added||0);updated+=Number(res.updated||0);count+=Number(res.count||0);next();},fail);
+                    }; next(); return;
+                }
+                portalJsonp(String(prop),args,ok,fail);
+            };
+        }});
+        if (typeof window.google === 'undefined') window.google = {};
+        if (!window.google.script) window.google.script = {};
+        window.google.script.run = portalRunProxy;
+
+        // Init Lucide Icons
+        lucide.createIcons();
+
+        // LOGO HANDLER (Tanam logo langsung menggunakan Base64 terintegrasi)
+        const logoUrl = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEASABIAAD/4QBoRXhpZgAATU0AKgAAAAgABAEaAAUAAAABAAAAPgEbAAUAAAABAAAARgEoAAMAAAABAAIAAAExAAIAAAARAAAATgAAAAAAAABIAAAAAQAAAEgAAAABUGhvdG9zaG9wIDMuMAAQAABwRloAANXNAAC4hQEAAPwA..."; // (disesuaikan dengan base64 penuh logo Anda)
+    
+
+        // DATABASE SISWA (Silakan masukkan data 150 peserta Anda di sini)
+        const studentDatabase = [
+            // Kelas 7A
+
+{ nis: "1138", name: "AFFAN SYAFI'I PUTRA", class: "7A", token: "PAS2026" },
+{ nis: "1139", name: "AQILA DEFANASTASYA", class: "7A", token: "PAS2026" },
+{ nis: "1140", name: "ARUM SEKAR KINASIH", class: "7A", token: "PAS2026" },
+{ nis: "1141", name: "AULIA NUR INSHANI", class: "7A", token: "PAS2026" },
+{ nis: "1142", name: "Ayra aninda subagya", class: "7A", token: "PAS2026" },
+{ nis: "1143", name: "AZAHWA SHABIYYAH HAYU", class: "7A", token: "PAS2026" },
+{ nis: "1144", name: "BELA USWATUN HASANAH", class: "7A", token: "PAS2026" },
+{ nis: "1145", name: "DANENDRA DARMAWAN SUSANTO", class: "7A", token: "PAS2026" },
+{ nis: "1146", name: "EGA ADI TAMA", class: "7A", token: "PAS2026" },
+{ nis: "1147", name: "FRENDI GAVRIEL SYAHPUTRA", class: "7A", token: "PAS2026" },
+{ nis: "1148", name: "GAVIN IVANDER KAYANA", class: "7A", token: "PAS2026" },
+{ nis: "1149", name: "IKA DEWI SETIYANI", class: "7A", token: "PAS2026" },
+{ nis: "1150", name: "ILHAM SALAM SULISTIANTO", class: "7A", token: "PAS2026" },
+{ nis: "1151", name: "MARSELINA RISTIANI", class: "7A", token: "PAS2026" },
+{ nis: "1152", name: "MAULANA ZAKI PRATAMA", class: "7A", token: "PAS2026" },
+{ nis: "1153", name: "NAFISYAH OKTAVIANI", class: "7A", token: "PAS2026" },
+{ nis: "1154", name: "NOVI SRI CAHYANTI", class: "7A", token: "PAS2026" },
+{ nis: "1155", name: "RAHMA ARIYANI NUR HIDAYAH", class: "7A", token: "PAS2026" },
+{ nis: "1156", name: "RIRIN FEBRIYANTI", class: "7A", token: "PAS2026" },
+{ nis: "1157", name: "TRI AGUSTINA", class: "7A", token: "PAS2026" },
+{ nis: "1158", name: "AIRIN ISNAINI AZZIRA", class: "7B", token: "PAS2026" },
+{ nis: "1159", name: "ALFIAN NUR IKHSAN", class: "7B", token: "PAS2026" },
+{ nis: "1160", name: "ALVIRA INDRIYANI", class: "7B", token: "PAS2026" },
+{ nis: "1161", name: "ANDIKA NUR WIJAYA", class: "7B", token: "PAS2026" },
+{ nis: "1162", name: "ANGELINA KHOIRUN SIFA", class: "7B", token: "PAS2026" },
+{ nis: "1163", name: "ANGGUN KUMAIROH", class: "7B", token: "PAS2026" },
+{ nis: "1164", name: "AZKIA ALFATUNNISA", class: "7B", token: "PAS2026" },
+{ nis: "1165", name: "DENTA ADYNATA", class: "7B", token: "PAS2026" },
+{ nis: "1166", name: "DHEA AZZARINT KUSUMA PUTRI", class: "7B", token: "PAS2026" },
+{ nis: "1167", name: "FATIMAH ADELIA LAILLI", class: "7B", token: "PAS2026" },
+{ nis: "1168", name: "IMAN NURFERYANSAH", class: "7B", token: "PAS2026" },
+{ nis: "1169", name: "LUTVIANA DWI RAMADHANI", class: "7B", token: "PAS2026" },
+{ nis: "1170", name: "MUHAMMAD ARIEL AL HUDA", class: "7B", token: "PAS2026" },
+{ nis: "1171", name: "NISRINA HUSNA QOIRUNADA", class: "7B", token: "PAS2026" },
+{ nis: "1172", name: "OKA DWI SAPUTRA", class: "7B", token: "PAS2026" },
+{ nis: "1173", name: "OVVI MUHAMMAD ADISTY", class: "7B", token: "PAS2026" },
+{ nis: "1174", name: "RADITYA BAGAS PRABOWO", class: "7B", token: "PAS2026" },
+{ nis: "1175", name: "RAISHA AQILA ADWA", class: "7B", token: "PAS2026" },
+{ nis: "1176", name: "RAYSA FEBRYANI", class: "7B", token: "PAS2026" },
+{ nis: "1177", name: "VIVI KINANTI ASMARA", class: "7B", token: "PAS2026" },
+{ nis: "1087", name: "Adsel Yodha Pudhiastowo", class: "8A", token: "PAS2026" },
+{ nis: "1088", name: "Afnan Taufikurohman", class: "8A", token: "PAS2026" },
+{ nis: "1089", name: "Alicha Anggit Dyah Rengganis", class: "8A", token: "PAS2026" },
+{ nis: "1090", name: "Andhika Ferdy Saputra", class: "8A", token: "PAS2026" },
+{ nis: "1091", name: "Ari Aji Putra Purnama", class: "8A", token: "PAS2026" },
+{ nis: "1092", name: "Cahaya Dwika Damayanti", class: "8A", token: "PAS2026" },
+{ nis: "1093", name: "Dwi Ratna", class: "8A", token: "PAS2026" },
+{ nis: "1094", name: "Fajar Dwi Pangestu", class: "8A", token: "PAS2026" },
+{ nis: "1095", name: "Fathiya Aulia", class: "8A", token: "PAS2026" },
+{ nis: "1096", name: "Galang Okky Saputra", class: "8A", token: "PAS2026" },
+{ nis: "1097", name: "Maikarani Sifia", class: "8A", token: "PAS2026" },
+{ nis: "1098", name: "Meisya Nirmala Sari", class: "8A", token: "PAS2026" },
+{ nis: "1099", name: "Mohammad Nova Febriansyah", class: "8A", token: "PAS2026" },
+{ nis: "1100", name: "Muhammad Dzacky El Harasy", class: "8A", token: "PAS2026" },
+{ nis: "1101", name: "Muhammad Fakhri Allam", class: "8A", token: "PAS2026" },
+{ nis: "1102", name: "Nanda Dwi Prasetyo", class: "8A", token: "PAS2026" },
+{ nis: "1103", name: "Nayla Fauziah Haryadi", class: "8A", token: "PAS2026" },
+{ nis: "1104", name: "Nino Florentino", class: "8A", token: "PAS2026" },
+{ nis: "1105", name: "Raffi Nur Al Rasyid", class: "8A", token: "PAS2026" },
+{ nis: "1106", name: "Ramadhan Hendru Arka Septano", class: "8A", token: "PAS2026" },
+{ nis: "1107", name: "Sesa Dwi Ristiana", class: "8A", token: "PAS2026" },
+{ nis: "1108", name: "Silvi Anindya Putri", class: "8A", token: "PAS2026" },
+{ nis: "1109", name: "Vita Qusnul Fatimah", class: "8A", token: "PAS2026" },
+{ nis: "1110", name: "Wahyu Yoga Pangayun", class: "8A", token: "PAS2026" },
+{ nis: "1111", name: "Wisnu Pamungkas", class: "8A", token: "PAS2026" },
+{ nis: "1112", name: "Zuan Iman Nuriel", class: "8A", token: "PAS2026" },
+{ nis: "1113", name: "Afif Khalaf Faith", class: "8B", token: "PAS2026" },
+{ nis: "1114", name: "Alvita Gita Resti", class: "8B", token: "PAS2026" },
+{ nis: "1115", name: "Amanda Azzahidin Fadli", class: "8B", token: "PAS2026" },
+{ nis: "1116", name: "Amellya Fitri Wahyuni", class: "8B", token: "PAS2026" },
+{ nis: "1117", name: "Armeta Dwi Mayasari", class: "8B", token: "PAS2026" },
+{ nis: "1118", name: "Azzalifa Diandra Putry", class: "8B", token: "PAS2026" },
+{ nis: "1119", name: "Daffa Akbar Firmansyah", class: "8B", token: "PAS2026" },
+{ nis: "1120", name: "Dicky Saputra", class: "8B", token: "PAS2026" },
+{ nis: "1121", name: "Dino Bagas Saputra", class: "8B", token: "PAS2026" },
+{ nis: "1122", name: "Gheisha Nova Azzahra", class: "8B", token: "PAS2026" },
+{ nis: "1123", name: "Husnah Nurin Irdina", class: "8B", token: "PAS2026" },
+{ nis: "1124", name: "Ibnu Al Jauzi", class: "8B", token: "PAS2026" },
+{ nis: "1125", name: "Janitra Febryana", class: "8B", token: "PAS2026" },
+{ nis: "1126", name: "Kelfin", class: "8B", token: "PAS2026" },
+{ nis: "1127", name: "Labib Apriyanto Nugroho", class: "8B", token: "PAS2026" },
+{ nis: "1128", name: "Marsha Aulya", class: "8B", token: "PAS2026" },
+{ nis: "1129", name: "Muhamad Dewanda Aditya Tama", class: "8B", token: "PAS2026" },
+{ nis: "1130", name: "Muhammad Rafka", class: "8B", token: "PAS2026" },
+{ nis: "1131", name: "Muhammad Teguh Pratama", class: "8B", token: "PAS2026" },
+{ nis: "1132", name: "Rendi Setiawan", class: "8B", token: "PAS2026" },
+{ nis: "1133", name: "Selvilia Nur Alifah", class: "8B", token: "PAS2026" },
+{ nis: "1134", name: "Siti Hardiyanti", class: "8B", token: "PAS2026" },
+{ nis: "1135", name: "Supratman", class: "8B", token: "PAS2026" },
+{ nis: "1136", name: "Yanuar Nizam Harmita", class: "8B", token: "PAS2026" },
+{ nis: "1137", name: "Yusdhajati Yudistira", class: "8B", token: "PAS2026" },
+{ nis: "1178", name: "Aulia Septiana", class: "8B", token: "PAS2026" },
+{ nis: "1037", name: "Adinda Sona Ayuningtyas", class: "9A", token: "PAS2026" },
+{ nis: "1038", name: "Aisyah Apriyani", class: "9A", token: "PAS2026" },
+{ nis: "1039", name: "Andhika Putra Riyatno", class: "9A", token: "PAS2026" },
+{ nis: "1040", name: "Andri Dwi Setiawan", class: "9A", token: "PAS2026" },
+{ nis: "1041", name: "Arkaan Nur Arifin", class: "9A", token: "PAS2026" },
+{ nis: "1042", name: "Aseptyan Dwi Utama", class: "9A", token: "PAS2026" },
+{ nis: "1044", name: "Azis Hanafi Putra", class: "9A", token: "PAS2026" },
+{ nis: "1045", name: "Elvan Rizki Antoni", class: "9A", token: "PAS2026" },
+{ nis: "1046", name: "Faiz Nur Hidayah", class: "9A", token: "PAS2026" },
+{ nis: "1047", name: "Ilham Enda Pratama", class: "9A", token: "PAS2026" },
+{ nis: "1048", name: "Kheisa Firyal Devata", class: "9A", token: "PAS2026" },
+{ nis: "1049", name: "Maya Puspita Sari", class: "9A", token: "PAS2026" },
+{ nis: "1050", name: "Muhammad Afif Abidin", class: "9A", token: "PAS2026" },
+{ nis: "1051", name: "Muhammad Dawai Alfa'al", class: "9A", token: "PAS2026" },
+{ nis: "1052", name: "Pudhiastiwi", class: "9A", token: "PAS2026" },
+{ nis: "1053", name: "Raehan Septiansyah Saputra", class: "9A", token: "PAS2026" },
+{ nis: "1054", name: "Rafa Surya Firmansyah", class: "9A", token: "PAS2026" },
+{ nis: "1055", name: "Safarudin Hamid", class: "9A", token: "PAS2026" },
+{ nis: "1056", name: "Salman Ibnu Febriyanto", class: "9A", token: "PAS2026" },
+{ nis: "1057", name: "Tiara Qoirunnisa", class: "9A", token: "PAS2026" },
+{ nis: "1058", name: "Tito Dwi Febriansyah Putra", class: "9A", token: "PAS2026" },
+{ nis: "1059", name: "Tyas Hendriansah", class: "9A", token: "PAS2026" },
+{ nis: "1060", name: "Vitri Nuraisya", class: "9A", token: "PAS2026" },
+{ nis: "1061", name: "Yanuar Ibam Abyansyah", class: "9A", token: "PAS2026" },
+{ nis: "1062", name: "Zekha Annastasya Anesta", class: "9A", token: "PAS2026" },
+{ nis: "1028", name: "Nova Saputra", class: "9B", token: "PAS2026" },
+{ nis: "1034", name: "Tores Muhammad Saputra", class: "9B", token: "PAS2026" },
+{ nis: "1063", name: "Adam Hudayfa Sakia", class: "9B", token: "PAS2026" },
+{ nis: "1064", name: "Aisyah Fitria Ramadhani", class: "9B", token: "PAS2026" },
+{ nis: "1065", name: "Alfarisi Dersa Ardinata", class: "9B", token: "PAS2026" },
+{ nis: "1066", name: "Ardana Dwi Ramadani", class: "9B", token: "PAS2026" },
+{ nis: "1067", name: "Aziza Husna Lutfiana", class: "9B", token: "PAS2026" },
+{ nis: "1068", name: "Danang Suryono", class: "9B", token: "PAS2026" },
+{ nis: "1069", name: "Denny Ragil Saputro", class: "9B", token: "PAS2026" },
+{ nis: "1070", name: "Devan Meilanno Catur Saputra", class: "9B", token: "PAS2026" },
+{ nis: "1071", name: "Dewi Anggraeeni", class: "9B", token: "PAS2026" },
+{ nis: "1072", name: "Dzaky Abrisam Kurniawan", class: "9B", token: "PAS2026" },
+{ nis: "1073", name: "Edho Apriyanto", class: "9B", token: "PAS2026" },
+{ nis: "1074", name: "Fathan Jaian Mahesa", class: "9B", token: "PAS2026" },
+{ nis: "1075", name: "Hady Nur Septyan", class: "9B", token: "PAS2026" },
+{ nis: "1076", name: "Ibnu Fauzan", class: "9B", token: "PAS2026" },
+{ nis: "1077", name: "Isnain Salfa Mareta", class: "9B", token: "PAS2026" },
+{ nis: "1078", name: "Keinzo Agung Priya Atmadja", class: "9B", token: "PAS2026" },
+{ nis: "1079", name: "Laila Nur Inda Larasati", class: "9B", token: "PAS2026" },
+{ nis: "1080", name: "Nada Khaira Septiani", class: "9B", token: "PAS2026" },
+{ nis: "1081", name: "Naufal Khalil Prasetia", class: "9B", token: "PAS2026" },
+{ nis: "1082", name: "Putro Baskoro", class: "9B", token: "PAS2026" },
+{ nis: "1083", name: "Qhiera Dwi Ardiyanti", class: "9B", token: "PAS2026" },
+{ nis: "1084", name: "Qhoiril Nino Surya Pradipta", class: "9B", token: "PAS2026" },
+{ nis: "1085", name: "Rizky Maulana Putra", class: "9B", token: "PAS2026" },
+{ nis: "1086", name: "Shintara Dwi Nur Rahmawati", class: "9B", token: "PAS2026" },
+        ];
+
+        // DAFTAR MAPEL DAN LINK UJIAN PER TINGKAT KELAS
+        // Ganti URL kosong dengan tautan Google Form yang sebenarnya.
+        // Tautan matematika dan Bahasa Indonesia yang bertuliskan EXAMPLE juga wajib diganti.
+        const formLinks = {
+            "7": [
+                { id: "indo", title: "Bahasa Indonesia", url: "https://docs.google.com/forms/d/e/1FAIpQLSc_EXAMPLE_7_BINDO/viewform?embedded=true" },
+                { id: "ips", title: "IPS", url: "" },
+                { id: "pjok", title: "PJOK", url: "" },
+                { id: "matematika", title: "Matematika", url: "https://docs.google.com/forms/d/e/1FAIpQLSc_EXAMPLE_7_MATH/viewform?embedded=true" },
+                { id: "agama", title: "Pendidikan Agama", url: "" },
+                { id: "inggris", title: "Bahasa Inggris", url: "" },
+                { id: "jawa", title: "Bahasa Jawa", url: "" },
+                { id: "ipa", title: "IPA", url: "https://docs.google.com/forms/d/e/1FAIpQLSc4Y4PfdsT5GRSW3Fw9nxf-Mw1Z4gifBk-UIEMmqKYjfMMGFA/viewform?embedded=true" },
+                { id: "seni", title: "Seni Budaya", url: "" },
+                { id: "pkn", title: "PKn", url: "" },
+                { id: "informatika", title: "Informatika", url: "" }
+            ],
+            "8": [
+                { id: "indo", title: "Bahasa Indonesia", url: "https://docs.google.com/forms/d/e/1FAIpQLSc_EXAMPLE_8_BINDO/viewform?embedded=true" },
+                { id: "ips", title: "IPS", url: "" },
+                { id: "pjok", title: "PJOK", url: "" },
+                { id: "matematika", title: "Matematika", url: "https://docs.google.com/forms/d/e/1FAIpQLSc_EXAMPLE_8_MATH/viewform?embedded=true" },
+                { id: "agama", title: "Pendidikan Agama", url: "" },
+                { id: "inggris", title: "Bahasa Inggris", url: "" },
+                { id: "jawa", title: "Bahasa Jawa", url: "" },
+                { id: "ipa", title: "IPA", url: "https://docs.google.com/forms/d/e/1FAIpQLSd-fCg6C0YEwCvRy4tixkzwDEvuFs_q1EEv_yJ9s_LUlyPGIA/viewform?embedded=true" },
+                { id: "seni", title: "Seni Budaya", url: "" },
+                { id: "pkn", title: "PKn", url: "" },
+                { id: "informatika", title: "Informatika", url: "" }
+            ],
+            "9": [
+                { id: "indo", title: "Bahasa Indonesia", url: "https://docs.google.com/forms/d/e/1FAIpQLSd-fCg6C0YEwCvRy4tixkzwDEvuFs_q1EEv_yJ9s_LUlyPGIA/viewform?embedded=true" },
+                { id: "ips", title: "IPS", url: "https://docs.google.com/forms/d/e/1FAIpQLSd-fCg6C0YEwCvRy4tixkzwDEvuFs_q1EEv_yJ9s_LUlyPGIA/viewform?embedded=true" },
+                { id: "pjok", title: "PJOK", url: "https://docs.google.com/forms/d/e/1FAIpQLSd-fCg6C0YEwCvRy4tixkzwDEvuFs_q1EEv_yJ9s_LUlyPGIA/viewform?embedded=true" },
+                { id: "matematika", title: "Matematika", url: "https://docs.google.com/forms/d/e/1FAIpQLSd-fCg6C0YEwCvRy4tixkzwDEvuFs_q1EEv_yJ9s_LUlyPGIA/viewform?embedded=true" },
+                { id: "agama", title: "Pendidikan Agama", url: "" },
+                { id: "inggris", title: "Bahasa Inggris", url: "" },
+                { id: "jawa", title: "Bahasa Jawa", url: "" },
+                { id: "ipa", title: "IPA", url: "https://docs.google.com/forms/d/e/1FAIpQLSd-fCg6C0YEwCvRy4tixkzwDEvuFs_q1EEv_yJ9s_LUlyPGIA/viewform?embedded=true" },
+                { id: "seni", title: "Seni Budaya", url: "" },
+                { id: "pkn", title: "PKn", url: "" },
+                { id: "informatika", title: "Informatika", url: "" }
+            ]
+        };
+
+        // JADWAL UJIAN: tanggal dan jam lokal Indonesia (WIB).
+        // Link hanya aktif pada rentang waktu sesi yang ditentukan.
+        const examScheduleByDate = {
+            "2026-10-18": [
+                { id: "indo", start: "07:30", end: "23:00", session: 1 },
+                { id: "ips", start: "09:30", end: "23:00", session: 2 },
+                { id: "pjok", start: "11:30", end: "23:00", session: 3 }
+            ],
+            "2026-10-06": [
+                { id: "matematika", start: "07:30", end: "09:00", session: 1 },
+                { id: "agama", start: "09:30", end: "11:00", session: 2 }
+            ],
+            "2026-10-07": [
+                { id: "inggris", start: "07:30", end: "09:00", session: 1 },
+                { id: "jawa", start: "09:30", end: "11:00", session: 2 }
+            ],
+            "2026-10-22": [
+                { id: "ipa", start: "07:30", end: "23:59", session: 1 },
+                { id: "seni", start: "09:30", end: "11:00", session: 2 }
+            ],
+            "2026-10-10": [
+                { id: "pkn", start: "07:30", end: "23:59", session: 1 },
+                { id: "informatika", start: "09:30", end: "11:00", session: 2 }
+            ]
+        };
+
+        // Jadwal tidak berulang otomatis. Tambahkan tanggal baru pada examScheduleByDate.
+        const examScheduleByDay = { 0: [], 1: [], 2: [], 3: [], 4: [], 5: [], 6: [] };
+
+        // GLOBAL STATE
+        let currentStudent = null;
+        let violationCount = 0;
+        let isExamActive = false;
+        let isAdmin = false;
+        let sharedSchedules = [];
+        let adminSessionKey = "";
+        let backendAvailable = false;
+
+        // Ambil jadwal bersama dari Google Sheets (Apps Script Web App).
+        function loadSharedSchedules(callback) {
+            if (typeof google === "undefined" || !google.script || !google.script.run) { backendAvailable = false; if (callback) callback(); return; }
+            google.script.run.withSuccessHandler(data => { sharedSchedules = Array.isArray(data) ? data : []; backendAvailable = true; if (callback) callback(); })
+              .withFailureHandler(err => { console.error(err); backendAvailable = false; if (callback) callback(); }).getPublicSchedules();
+        }
+        window.addEventListener("load", () => loadSharedSchedules());
+
+        // HANDLE LOGIN
+        function handleLogin(e) {
+            e.preventDefault();
+            const nis = document.getElementById('nisInput').value.trim();
+            const token = document.getElementById('tokenInput').value.trim();
+            const errorDiv = document.getElementById('loginError');
+            if (nis.toUpperCase() === 'ADMIN') {
+                if (typeof google === "undefined" || !google.script || !google.script.run) {
+                    errorDiv.textContent = "Portal Admin harus dibuka dari URL Web App Google Apps Script (/exec).";
+                    errorDiv.classList.remove('hidden'); return;
+                }
+                const btn = document.querySelector('#loginForm button[type="submit"]');
+                btn.disabled = true; btn.classList.add('opacity-60');
+                google.script.run.withSuccessHandler(result => {
+                    btn.disabled = false; btn.classList.remove('opacity-60');
+                    if (result && result.ok && result.session) {
+                        isAdmin = true; adminSessionKey = result.session;
+                        errorDiv.classList.add('hidden');
+                        document.getElementById('loginSection').classList.add('hidden');
+                        document.getElementById('adminSection').classList.remove('hidden');
+                        document.getElementById('userInfoHeader').classList.add('hidden');
+                        loadAdminRows();
+                        loadResponseConfig();
+                    } else { errorDiv.textContent = (result && result.message) || "NIS admin atau token salah."; errorDiv.classList.remove('hidden'); }
+                }).withFailureHandler(err => {
+                    btn.disabled = false; btn.classList.remove('opacity-60');
+                    errorDiv.textContent = "Gagal menghubungi server. Pastikan Web App sudah di-deploy ulang."; errorDiv.classList.remove('hidden');
+                }).adminLogin(nis, token);
+                return;
+            }
+            const student = studentDatabase.find(s => s.nis === nis && s.token === token);
+            if (student) {
+                currentStudent = student; errorDiv.classList.add('hidden');
+                document.getElementById('studentNameDisplay').textContent = student.name;
+                document.getElementById('studentClassDisplay').textContent = `Kelas ${student.class} | NIS: ${student.nis}`;
+                document.getElementById('userInfoHeader').classList.remove('hidden');
+                document.getElementById('loginSection').classList.add('hidden');
+                document.getElementById('dashboardSection').classList.remove('hidden');
+                loadSharedSchedules(() => renderMapelList());
+            } else {
+                errorDiv.textContent = "NIS atau Token salah! Periksa kembali data Anda.";
+                errorDiv.classList.remove('hidden');
+            }
+        }
+
+        // Waktu sistem perangkat harus mengikuti waktu lokal Indonesia (WIB).
+        function getLocalDateKey(date = new Date()) {
+            return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+        }
+
+        function getTodaySchedule() {
+            const now = new Date(); const key = getLocalDateKey(now);
+            if (backendAvailable) {
+                const klass = String(currentStudent && currentStudent.class || "");
+                return sharedSchedules.filter(x => x.date === key && (x.className === klass || x.className === klass.charAt(0)) && x.enabled).map(x => ({ id:x.subjectId, title:x.title, url:x.url, start:x.start, end:x.end, session:x.session }));
+            }
+            if (Object.prototype.hasOwnProperty.call(examScheduleByDate, key)) return examScheduleByDate[key];
+            return (examScheduleByDay[now.getDay()] || []).map(item => item);
+        }
+
+        function getExamStatus(schedule) {
+            const now = new Date();
+            const dateKey = getLocalDateKey(now);
+            const start = new Date(`${dateKey}T${schedule.start}:00`);
+            const end = new Date(`${dateKey}T${schedule.end}:00`);
+            if (now < start) return { state: 'upcoming', label: `Belum dimulai · aktif pukul ${schedule.start}`, start, end };
+            if (now >= end) return { state: 'ended', label: `Waktu ujian berakhir pukul ${schedule.end}`, start, end };
+            return { state: 'active', label: `Sedang berlangsung · sampai ${schedule.end}`, start, end };
+        }
+
+        function renderMapelList() {
+            const container = document.getElementById('mapelListContainer');
+            container.innerHTML = '';
+            const grade = String(currentStudent.class).charAt(0);
+            const schedule = getTodaySchedule();
+            const gradeMapels = formLinks[grade] || [];
+            const mapels = schedule.map(item => {
+                if (backendAvailable) return { ...item, title: item.title || item.id };
+                const mapel = gradeMapels.find(m => m.id === item.id);
+                return mapel ? { ...mapel, ...item } : null;
+            }).filter(Boolean);
+
+            if (mapels.length === 0) {
+                const empty = document.createElement('div');
+                empty.className = 'md:col-span-3 rounded-xl border border-amber-200 bg-amber-50 p-5 text-center';
+                empty.innerHTML = `<div class="font-bold text-amber-800">Tidak ada ujian terjadwal hari ini</div><p class="text-sm text-amber-700 mt-2">Silakan periksa kembali sesuai tanggal pada jadwal ujian sekolah.</p>`;
+                container.appendChild(empty);
+                lucide.createIcons();
+                return;
+            }
+
+            mapels.forEach(mapel => {
+                const status = getExamStatus(mapel);
+                const hasUrl = !!mapel.url && !mapel.url.includes('EXAMPLE');
+                const canStart = status.state === 'active' && hasUrl;
+                let buttonLabel = !hasUrl ? 'Link Belum Tersedia' : status.state === 'upcoming' ? 'Belum Saatnya' : status.state === 'ended' ? 'Waktu Habis' : 'Mulai Ujian';
+                const card = document.createElement('div');
+                card.className = 'border border-softgreen-200 rounded-xl p-5 bg-softgreen-50 flex flex-col justify-between';
+                card.innerHTML = `
+                    <div>
+                        <span class="bg-softgreen-200 text-softgreen-800 text-[10px] px-2 py-0.5 rounded-full font-bold">Sesi ${mapel.session}</span>
+                        <h3 class="font-bold text-gray-800 text-base mt-2">${mapel.title}</h3>
+                        <p class="text-xs text-gray-500 mt-1">Kelas ${currentStudent.class}</p>
+                        <p class="text-xs text-gray-600 mt-2">Jadwal: ${mapel.start}–${mapel.end} WIB</p>
+                        <p class="text-xs ${status.state === 'active' ? 'text-green-700' : 'text-amber-700'} mt-2" data-status>${hasUrl ? status.label : 'Tautan Google Form belum diisi'}</p>
+                    </div>
+                    <button type="button" data-start-button ${canStart ? '' : 'disabled'}
+                        class="mt-4 w-full ${canStart ? 'bg-softgreen-600 hover:bg-softgreen-700' : 'bg-gray-300 cursor-not-allowed'} text-white font-medium py-2 rounded-lg text-xs transition flex items-center justify-center gap-1"
+                        title="${canStart ? 'Mulai ujian' : buttonLabel}">
+                        <i data-lucide="file-text" class="w-4 h-4"></i> ${buttonLabel}
+                    </button>`;
+                const button = card.querySelector('[data-start-button]');
+                if (canStart) button.addEventListener('click', () => startExam(mapel.url, `${mapel.title} — Kelas ${currentStudent.class}`, mapel));
+                container.appendChild(card);
+            });
+            lucide.createIcons();
+        }
+
+
+        const MATRIX_SUBJECTS = [
+          ['indo','Bahasa Indonesia'],['ips','IPS'],['pjok','PJOK'],['matematika','Matematika'],['agama','Pendidikan Agama'],['inggris','Bahasa Inggris'],['jawa','Bahasa Jawa'],['ipa','IPA'],['pky','Prakarya'],['pkn','PKn'],['informatika','Informatika']
+        ];
+        function buildAdminMatrix() {
+          const tbody=document.getElementById('matrixRows'); if(!tbody || tbody.dataset.ready==='1')return;
+          tbody.dataset.ready='1';
+          MATRIX_SUBJECTS.forEach(([id,title])=>{
+            const tr=document.createElement('tr');tr.className='border-t border-blue-50';
+            const name=document.createElement('td');name.className='p-3 font-semibold text-gray-800 whitespace-nowrap';name.textContent=title;tr.appendChild(name);
+            ['7','8','9'].forEach(grade=>{
+              const td=document.createElement('td');td.className='p-2';
+              const input=document.createElement('input');input.type='url';input.id='mx_'+id+'_'+grade;input.placeholder='Tempel URL EDIT Google Form';input.className='w-full min-w-56 rounded-lg border border-gray-200 p-2 text-xs';input.setAttribute('aria-label',title+' kelas '+grade);td.appendChild(input);tr.appendChild(td);
+            });
+            tbody.appendChild(tr);
+          });
+        }
+        function clearAdminMatrix(){buildAdminMatrix();MATRIX_SUBJECTS.forEach(([id])=>['7','8','9'].forEach(g=>{document.getElementById('mx_'+id+'_'+g).value='';}));document.getElementById('matrixInfo').textContent='Seluruh kolom URL matriks dikosongkan.';}
+        function loadMatrixFromSchedules(){
+          buildAdminMatrix();const date=document.getElementById('mxDate').value;if(!date){showAdminMessage('Pilih tanggal ujian matriks terlebih dahulu.',false);return;}
+          MATRIX_SUBJECTS.forEach(([id])=>['7','8','9'].forEach(g=>{document.getElementById('mx_'+id+'_'+g).value='';}));
+          sharedSchedules.filter(r=>r.date===date).forEach(r=>{const key='mx_'+r.subjectId+'_'+String(r.className).charAt(0);const el=document.getElementById(key);if(el)el.value=r.editUrl||'';});
+          document.getElementById('matrixInfo').textContent='URL EDIT yang tersimpan untuk tanggal '+date+' dimuat ke matriks. URL peserta lama tidak dapat digunakan sebagai URL EDIT.';
+        }
+        function saveAdminMatrix(){
+          if(!isAdmin||!adminSessionKey)return;buildAdminMatrix();
+          const date=document.getElementById('mxDate').value,start=document.getElementById('mxStart').value,end=document.getElementById('mxEnd').value,session=Number(document.getElementById('mxSession').value),enabled=document.getElementById('mxEnabled').checked;
+          if(!date||!start||!end||end<=start||!Number.isInteger(session)||session<1||session>20){showAdminMessage('Periksa tanggal, sesi, dan rentang waktu bersama.',false);return;}
+          const items=[];MATRIX_SUBJECTS.forEach(([subjectId,title])=>['7','8','9'].forEach(grade=>{const url=document.getElementById('mx_'+subjectId+'_'+grade).value.trim();if(url)items.push({date,className:grade,title,subjectId,start,end,session,url,enabled});}));
+          if(!items.length){showAdminMessage('Isi minimal satu URL Google Form pada matriks.',false);return;}
+          if(items.some(it=>!/^https:\/\/docs\.google\.com\/forms\/d\/[a-zA-Z0-9_-]+\/edit(?:[?#].*)?$/i.test(it.url))){showAdminMessage('Ada URL tidak valid. Gunakan URL EDIT Google Form yang berakhir /edit.',false);return;}
+          const btn=document.getElementById('matrixSaveBtn');btn.disabled=true;btn.textContent='Menyimpan...';
+          google.script.run.withSuccessHandler(res=>{btn.disabled=false;btn.textContent='Simpan Matriks Massal';if(res&&res.ok){showAdminMessage(res.message||'Matriks berhasil disimpan.');document.getElementById('matrixInfo').textContent='Berhasil memproses '+res.count+' sel terisi.';loadAdminRows();loadSharedSchedules();}else showAdminMessage(res&&res.message||'Matriks gagal disimpan.',false);})
+            .withFailureHandler(err=>{btn.disabled=false;btn.textContent='Simpan Matriks Massal';showAdminMessage((err&&err.message)||'Gagal menyimpan matriks.',false);}).adminSaveScheduleBulk(adminSessionKey,items);
+        }
+
+        function showAdminMessage(message, ok=true) {
+            const el=document.getElementById('adminMessage'); el.textContent=message; el.className='text-sm p-3 rounded-lg mb-4 '+(ok?'bg-green-50 text-green-800 border border-green-200':'bg-red-50 text-red-700 border border-red-200');
+        }
+        function resetAdminForm() { document.getElementById('scheduleForm').reset(); document.getElementById('editRow').value=''; document.getElementById('admSession').value='1'; document.getElementById('admEnabled').checked=true; document.getElementById('adminSaveBtn').textContent='Simpan Jadwal'; }
+        function loadAdminRows() {
+            if (!isAdmin || !adminSessionKey) return;
+            buildAdminMatrix();
+            const tbody=document.getElementById('adminRows'); tbody.innerHTML='<tr><td colspan="6" class="p-4">Memuat...</td></tr>';
+            google.script.run.withSuccessHandler(rows => {
+                sharedSchedules=Array.isArray(rows)?rows:[]; refreshMonitoringOptions(); tbody.innerHTML='';
+                if (!sharedSchedules.length) { tbody.innerHTML='<tr><td colspan="6" class="p-4 text-gray-500">Belum ada jadwal. Tambahkan melalui formulir di atas.</td></tr>'; return; }
+                sharedSchedules.forEach((r,i)=>{
+                    const tr=document.createElement('tr'); tr.className='border-t border-gray-100 hover:bg-gray-50';
+                    [r.date,(/^([789])$/.test(r.className)?`Kelas ${r.className} (${r.className}A & ${r.className}B)`:r.className),r.title,`${r.start}–${r.end}`,r.enabled?'Aktif':'Nonaktif'].forEach(v=>{const td=document.createElement('td');td.className='p-3 whitespace-nowrap';td.textContent=v||'-';tr.appendChild(td)});
+                    const td=document.createElement('td');td.className='p-3 whitespace-nowrap';
+                    const edit=document.createElement('button');edit.textContent='Edit';edit.className='text-blue-700 font-semibold mr-3';edit.onclick=()=>editAdminRow(i);
+                    const del=document.createElement('button');del.textContent='Hapus';del.className='text-red-600 font-semibold';del.onclick=()=>deleteAdminRow(i);
+                    td.append(edit,del);tr.appendChild(td);tbody.appendChild(tr);
+                });
+            }).withFailureHandler(err=>{tbody.innerHTML='<tr><td colspan="6" class="p-4 text-red-600"></td></tr>';tbody.querySelector('td').textContent=(err&&err.message)||'Gagal membaca Google Sheets. Periksa izin dan deployment.';}).adminGetSchedules(adminSessionKey);
+        }
+        function editAdminRow(i) { const r=sharedSchedules[i]; if(!r)return; document.getElementById('editRow').value=r.rowId||''; document.getElementById('admDate').value=r.date; document.getElementById('admClass').value=r.className; document.getElementById('admTitle').value=r.title; document.getElementById('admSubjectId').value=r.subjectId; document.getElementById('admStart').value=r.start; document.getElementById('admEnd').value=r.end; document.getElementById('admSession').value=r.session; document.getElementById('admUrl').value=r.editUrl||''; document.getElementById('admEnabled').checked=!!r.enabled; document.getElementById('adminSaveBtn').textContent='Simpan Perubahan'; document.getElementById('scheduleForm').scrollIntoView({behavior:'smooth',block:'start'}); }
+        function saveAdminSchedule(e) {
+            e.preventDefault(); if(!isAdmin||!adminSessionKey)return;
+            const item={rowId:document.getElementById('editRow').value,date:document.getElementById('admDate').value,className:document.getElementById('admClass').value,title:document.getElementById('admTitle').value.trim(),subjectId:document.getElementById('admSubjectId').value.trim().toLowerCase().replace(/[^a-z0-9_-]/g,''),start:document.getElementById('admStart').value,end:document.getElementById('admEnd').value,session:Number(document.getElementById('admSession').value),url:document.getElementById('admUrl').value.trim(),enabled:document.getElementById('admEnabled').checked};
+            if(item.end<=item.start){showAdminMessage('Jam selesai harus setelah jam mulai.',false);return;}
+            if(!item.url || !/^https:\/\/docs\.google\.com\/forms\/d\/[a-zA-Z0-9_-]+\/edit(?:[?#].*)?$/i.test(item.url)){showAdminMessage('Masukkan URL EDIT Form standar: https://docs.google.com/forms/d/ID_FORM/edit. Jangan gunakan URL peserta /viewform.',false);return;}
+            google.script.run.withSuccessHandler(res=>{if(res&&res.ok){showAdminMessage(res.message||'Jadwal berhasil disimpan ke Google Sheets.',true);resetAdminForm();loadAdminRows();loadSharedSchedules();}else showAdminMessage(res&&res.message||'Jadwal gagal disimpan.',false);}).withFailureHandler(err=>showAdminMessage((err&&err.message)||'Gagal menyimpan jadwal. Periksa koneksi backend dan izin Form/Spreadsheet.',false)).adminSaveSchedule(adminSessionKey,item);
+        }
+        function deleteAdminRow(i) { const r=sharedSchedules[i]; if(!r||!confirm(`Hapus jadwal ${r.title} kelas ${r.className} tanggal ${r.date}?`))return; google.script.run.withSuccessHandler(res=>{if(res&&res.ok){showAdminMessage('Jadwal berhasil dihapus.');loadAdminRows();loadSharedSchedules();}else showAdminMessage(res&&res.message||'Gagal menghapus.',false);}).withFailureHandler(()=>showAdminMessage('Gagal menghapus jadwal.',false)).adminDeleteSchedule(adminSessionKey,r.rowId); }
+        function adminLogout(){ if(adminSessionKey && typeof google!=='undefined' && google.script && google.script.run) google.script.run.adminLogout(adminSessionKey); adminSessionKey='';isAdmin=false;document.getElementById('adminSection').classList.add('hidden');document.getElementById('loginSection').classList.remove('hidden');document.getElementById('nisInput').value='';document.getElementById('tokenInput').value='';resetAdminForm(); }
+
+        // Perbarui status setiap detik agar tombol aktif/nonaktif tepat saat pergantian sesi.
+        setInterval(() => {
+            if (currentStudent && !isExamActive && !document.getElementById('dashboardSection').classList.contains('hidden')) {
+                renderMapelList();
+            }
+        }, 1000);
+
+        // START EXAM: validasi ulang waktu sebelum membuka form.
+        function startExam(url, title, schedule) {
+            if (!schedule || getExamStatus(schedule).state !== 'active' || !url || url.includes('EXAMPLE')) {
+                renderMapelList();
+                return;
+            }
+            isExamActive = true;
+            document.getElementById('dashboardSection').classList.add('hidden');
+            document.getElementById('examSection').classList.remove('hidden');
+            document.getElementById('activeMapelTitle').textContent = title;
+            document.getElementById('googleFormIframe').src = url;
+        }
+
+        // BACK TO DASHBOARD
+        function backToDashboard() {
+            isExamActive = false;
+            document.getElementById('examSection').classList.add('hidden');
+            document.getElementById('dashboardSection').classList.remove('hidden');
+            document.getElementById('googleFormIframe').src = "";
+        }
+
+        // LOGOUT
+        function logout() {
+            location.reload();
+        }
+
+        // ==========================================
+// 1. VARIABEL UTAMA
+// ==========================================
+
+
+let lastBlurTime = 0;
+
+// ==========================================
+// 2. FUNGSI LOGIN & NAVIGASI (Pastikan ini ada)
+// ==========================================
+function login() {
+    let user = document.getElementById('username').value.trim();
+    let pass = document.getElementById('password').value.trim();
+    let statusDiv = document.getElementById('loginStatus');
+
+    if (!user || !pass) {
+        statusDiv.textContent = "Username dan Password tidak boleh kosong!";
+        return;
+    }
+
+    statusDiv.textContent = "Memproses login...";
+    
+    // Simulasikan atau proses login Anda di sini
+    // Contoh: Beralih ke halaman dashboard/ujian setelah sukses
+    setTimeout(() => {
+        document.getElementById('loginView').classList.add('hidden');
+        document.getElementById('dashboardView').classList.remove('hidden');
+        isExamActive = true; // Aktifkan status ujian & pengaman
+        statusDiv.textContent = "";
+    }, 500);
+}
+
+// ==========================================
+// 3. SISTEM PENGAMAN ANTI-CURANG (DIPERBAIKI)
+// ==========================================
+function triggerViolation() {
+    if (!isExamActive) return;
+    
+    let now = new Date().getTime();
+    if (now - lastBlurTime < 1000) return;
+    lastBlurTime = now;
+
+    violationCount++;
+    
+    // Update teks jumlah pelanggaran jika elemennya ada
+    let warnCountEl = document.getElementById('warnCount');
+    let modalWarnEl = document.getElementById('modalWarnCount');
+    if (warnCountEl) warnCountEl.textContent = violationCount;
+    if (modalWarnEl) modalWarnEl.textContent = violationCount;
+
+    if (violationCount <= 2) {
+        let warningModal = document.getElementById('warningModal');
+        if (warningModal) warningModal.classList.remove('hidden');
+    } else {
+        let warningModal = document.getElementById('warningModal');
+        let lockedModal = document.getElementById('lockedModal');
+        if (warningModal) warningModal.classList.add('hidden');
+        if (lockedModal) lockedModal.classList.remove('hidden');
+        isExamActive = false;
+    }
+}
+
+// Event blur yang aman dari salah deteksi iframe/klik jawaban
+window.addEventListener('blur', function() {
+    setTimeout(() => {
+        // Jika fokus pindah ke iframe soal, abaikan (bukan curang)
+        if (document.activeElement && document.activeElement.tagName === 'IFRAME') {
+            return;
+        }
+        triggerViolation();
+    }, 200);
+});
+
+// Event visibilitas tab (mendeteksi pindah tab browser / minimize)
+document.addEventListener('visibilitychange', function() {
+    if (document.hidden) {
+        triggerViolation();
+    }
+});
+
+function closeWarningModal() {
+    let warningModal = document.getElementById('warningModal');
+    if (warningModal) warningModal.classList.add('hidden');
+}
+
+        // -------- Pengaturan dan monitoring respons Google Form --------
+        let responseMappings = [];
+        let responseSheets = [];
+        let responseHeaders = [];
+        function responseCall(method, args, onSuccess) {
+            const runner=google.script.run.withSuccessHandler(onSuccess).withFailureHandler(err=>showAdminMessage((err&&err.message)||'Terjadi kesalahan pada server.',false));
+            runner[method].apply(runner,args);
+        }
+        function loadResponseConfig(){
+            if(!isAdmin||!adminSessionKey)return;
+            responseCall('adminGetResponseConfig',[adminSessionKey],cfg=>{
+                document.getElementById('respSpreadsheetId').value=cfg.spreadsheetId||'';
+                responseMappings=Array.isArray(cfg.mappings)?cfg.mappings:[];
+                renderResponseMappings();
+                document.getElementById('responseDbInfo').textContent=cfg.spreadsheetId?'Pengaturan tersimpan. Klik Periksa Koneksi & Tab untuk memuat pilihan tab.':'Belum ada sumber respons yang disimpan.';
+            });
+        }
+        function inspectResponseTabs(){
+            const id=document.getElementById('respSpreadsheetId').value.trim();
+            if(!id){showAdminMessage('Masukkan ID spreadsheet respons terlebih dahulu.',false);return;}
+            responseCall('adminInspectResponseSpreadsheet',[adminSessionKey,id,'',1],data=>{
+                responseSheets=data.sheets||[];
+                const sel=document.getElementById('respSheetName');
+                sel.innerHTML='<option value="">Pilih tab respons</option>'+responseSheets.map(s=>`<option value="${escapeHtml(s.name)}">${escapeHtml(s.name)} (${s.lastRow} baris)</option>`).join('');
+                document.getElementById('responseDbInfo').textContent=`Terhubung: ${data.spreadsheetName}. Ditemukan ${responseSheets.length} tab.`;
+                showAdminMessage('Spreadsheet respons berhasil dibaca. Pilih tab untuk memetakan kolom.');
+            });
+        }
+        function inspectResponseHeaders(){
+            const id=document.getElementById('respSpreadsheetId').value.trim(), sheet=document.getElementById('respSheetName').value, row=Number(document.getElementById('respHeaderRow').value)||1;
+            if(!id||!sheet){showAdminMessage('Pilih tab respons terlebih dahulu.',false);return;}
+            responseCall('adminInspectResponseSpreadsheet',[adminSessionKey,id,sheet,row],data=>{
+                responseHeaders=data.headers||[];
+                const opts=responseHeaders.map((h,i)=>h?`<option value="${i}">${String.fromCharCode(65+i)} — ${escapeHtml(h)}</option>`:'').join('');
+                // Dropdown NIS khusus kandidat header NIS/No. Induk Siswa; kolom soal tidak ditampilkan.
+                const normHeader=h=>String(h||'').toLowerCase().replace(/[^a-z0-9]/g,'');
+                const nisCandidates=responseHeaders.map((h,i)=>({h,i,n:normHeader(h)})).filter(x=>x.h && (x.n==='nis' || x.n==='nomorinduksiswa' || x.n==='noinduksiswa' || x.n==='nomorinduk' || x.n==='noinduk' || x.n.includes('nis')));
+                const nisOpts=nisCandidates.map(x=>`<option value="${x.i}">${String.fromCharCode(65+x.i)} — ${escapeHtml(x.h)}</option>`).join('');
+                const nisSelect=document.getElementById('respNisHeader');
+                nisSelect.innerHTML=nisCandidates.length?'<option value="">Pilih kolom NIS</option>'+nisOpts:'<option value="">Header NIS tidak ditemukan pada baris '+row+'</option>';
+                if(nisCandidates.length){const exact=nisCandidates.find(x=>x.n==='nis');nisSelect.value=String((exact||nisCandidates[0]).i);}
+                document.getElementById('respTimeHeader').innerHTML='<option value="">Tidak digunakan</option>'+opts;
+                document.getElementById('respClassHeader').innerHTML='<option value="">Tidak digunakan</option>'+opts;
+                document.getElementById('respScoreHeader').innerHTML='<option value="">Tidak digunakan</option>'+opts;
+                document.getElementById('respSubjectHeader').innerHTML='<option value="">Pilih kolom mapel</option>'+opts;
+                showAdminMessage(nisCandidates.length?`Kolom pada tab ${sheet} dibaca. Ditemukan ${nisCandidates.length} kandidat NIS; pilihan NIS disaring dari header.`:`Kolom pada tab ${sheet} dibaca, tetapi header NIS tidak ditemukan pada baris ${row}. Periksa Baris Header atau gunakan tab rekap.`,nisCandidates.length>0);
+            });
+        }
+        function toggleSubjectMode(){
+            const fixed=document.getElementById('respSubjectMode').value==='fixed';
+            document.getElementById('respFixedWrap').classList.toggle('hidden',!fixed);
+            document.getElementById('respSubjectColWrap').classList.toggle('hidden',fixed);
+        }
+        function addResponseMapping(){
+            const sheetName=document.getElementById('respSheetName').value, headerRow=Number(document.getElementById('respHeaderRow').value)||1;
+            const nisColumnIndex=document.getElementById('respNisHeader').value, timestampColumnIndex=document.getElementById('respTimeHeader').value, classColumnIndex=document.getElementById('respClassHeader').value, scoreColumnIndex=document.getElementById('respScoreHeader').value;
+            const subjectMode=document.getElementById('respSubjectMode').value, fixedSubject=document.getElementById('respFixedSubject').value.trim(), subjectColumnIndex=document.getElementById('respSubjectHeader').value;
+            const nisHeader=nisColumnIndex!==''?responseHeaders[Number(nisColumnIndex)]:'';
+            const timestampHeader=timestampColumnIndex!==''?responseHeaders[Number(timestampColumnIndex)]:'';
+            const classHeader=classColumnIndex!==''?responseHeaders[Number(classColumnIndex)]:'';
+            const scoreHeader=scoreColumnIndex!==''?responseHeaders[Number(scoreColumnIndex)]:'';
+            const subjectHeader=subjectColumnIndex!==''?responseHeaders[Number(subjectColumnIndex)]:'';
+            if(!sheetName||nisColumnIndex===''){showAdminMessage('Kolom NIS tidak terdeteksi. Pastikan Baris Header menunjuk ke baris yang berisi judul kolom NIS, bukan baris pertanyaan.',false);return;}
+            if(subjectMode==='fixed'&&!fixedSubject){showAdminMessage('Isi nama mapel khusus tab ini.',false);return;}
+            if(subjectMode==='column'&&subjectColumnIndex===''){showAdminMessage('Pilih kolom mata pelajaran.',false);return;}
+            responseMappings=responseMappings.filter(m=>m.sheetName!==sheetName);
+            responseMappings.push({sheetName,headerRow,nisHeader,timestampHeader,classHeader,scoreHeader,nisColumnIndex,timestampColumnIndex,classColumnIndex,scoreColumnIndex,subjectMode,fixedSubject,subjectHeader,subjectColumnIndex});
+            renderResponseMappings(); showAdminMessage(`Tab ${sheetName} ditambahkan ke daftar pemetaan.`);
+        }
+        function renderResponseMappings(){
+            const body=document.getElementById('responseMappingRows'); body.innerHTML='';
+            if(!responseMappings.length){body.innerHTML='<tr><td colspan="6" class="p-3 text-gray-500">Belum ada tab yang dipetakan.</td></tr>';return;}
+            responseMappings.forEach((m,i)=>{
+                const tr=document.createElement('tr');tr.className='border-t';
+                const colLabel=(idx,header)=>idx!==undefined&&idx!==null&&idx!==''?`${String.fromCharCode(65+Number(idx))} — ${header||''}`:(header||'-');
+                const nisLabel=colLabel(m.nisColumnIndex,m.nisHeader);
+                const subject=m.subjectMode==='fixed'?m.fixedSubject:`Kolom: ${colLabel(m.subjectColumnIndex,m.subjectHeader)}`;
+                [m.sheetName,nisLabel,subject,(m.scoreHeader||'-'),String(m.headerRow)].forEach(v=>{const td=document.createElement('td');td.className='p-2';td.textContent=v||'-';tr.appendChild(td);});
+                const td=document.createElement('td');td.className='p-2';const b=document.createElement('button');b.textContent='Hapus';b.className='text-red-600 font-semibold';b.onclick=()=>{responseMappings.splice(i,1);renderResponseMappings();};td.appendChild(b);tr.appendChild(td);body.appendChild(tr);
+            });
+        }
+        function saveResponseConfig(){
+            const config={spreadsheetId:document.getElementById('respSpreadsheetId').value.trim(),mappings:responseMappings};
+            responseCall('adminSaveResponseConfig',[adminSessionKey,config],res=>showAdminMessage(res.message||'Pengaturan respons tersimpan.'));
+        }
+        function refreshMonitoringOptions(){
+            const subjects=[...new Map(sharedSchedules.map(x=>[x.title,x.title])).values()].sort((a,b)=>a.localeCompare(b,'id'));
+            const sel=document.getElementById('monitorSubject');
+            sel.innerHTML='<option value="">Pilih mata pelajaran</option>'+subjects.map(s=>`<option value="${escapeHtml(s)}">${escapeHtml(s)}</option>`).join('');
+        }
+        function escapeHtml(value){return String(value==null?'':value).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+        // Menyimpan hasil monitoring terakhir agar tombol unduh mengikuti filter yang tampil.
+        let lastMonitoringData = null;
+
+        function downloadMonitoringCSV(){
+            if(!lastMonitoringData || !Array.isArray(lastMonitoringData.rows) || !lastMonitoringData.rows.length){
+                showAdminMessage('Tampilkan Monitoring terlebih dahulu sebelum mengunduh nilai.',false);
+                return;
+            }
+            const d=lastMonitoringData;
+            const quote=v=>'"'+String(v==null?'':v).replace(/"/g,'""')+'"';
+            const lines=[
+                ['REKAP NILAI PESERTA'],
+                ['Kelas',d.className,'Mata Pelajaran',d.subject],
+                ['Jumlah Peserta',d.total,'Sudah Mengirim',d.submitted,'Belum Mengirim',d.notSubmitted],
+                ['Rata-rata',d.averageScore==null?'-':d.averageScore,'Tertinggi',d.highestScore==null?'-':d.highestScore,'Terendah',d.lowestScore==null?'-':d.lowestScore],
+                [],
+                ['No','NIS','Nama Siswa','Kelas','Mata Pelajaran','Nilai','Status','Waktu Kirim','Sumber Tab']
+            ];
+            d.rows.forEach((r,i)=>lines.push([
+                i+1,r.nis,r.name,d.className,d.subject,
+                r.score==null?'':r.score,
+                r.submitted?'SUDAH MENGIRIM':'BELUM MENGIRIM',
+                r.submittedAt||'',r.source||''
+            ]));
+            // UTF-8 BOM agar karakter Indonesia terbaca benar di Microsoft Excel.
+            const csv='\uFEFF'+lines.map(row=>row.map(quote).join(';')).join('\r\n');
+            const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});
+            const url=URL.createObjectURL(blob);
+            const a=document.createElement('a');
+            a.href=url;
+            a.download='Rekap_Nilai_'+String(d.className||'Kelas').replace(/[^a-z0-9_-]/gi,'_')+'_'+String(d.subject||'Mapel').replace(/[^a-z0-9_-]/gi,'_')+'.csv';
+            document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url);
+            showAdminMessage('File rekap nilai berhasil disiapkan untuk diunduh.');
+        }
+
+        function runResponseMonitoring(){
+            const filter={className:document.getElementById('monitorClass').value,subject:document.getElementById('monitorSubject').value};
+            if(!filter.subject){showAdminMessage('Pilih mata pelajaran untuk monitoring.',false);return;}
+            // Kirim hanya siswa pada kelas yang sedang dipilih agar URL JSONP tidak terlalu panjang.
+            const selectedClass=String(filter.className||'').trim();
+            const roster=studentDatabase
+                .filter(s=>String(s.class||'').trim()===selectedClass)
+                .map(s=>({nis:String(s.nis),name:String(s.name),class:String(s.class)}));
+            if(!roster.length){
+                showAdminMessage('Data siswa untuk kelas '+selectedClass+' tidak ditemukan. Periksa data kelas pada database siswa.',false);
+                return;
+            }
+            document.getElementById('monitorRows').innerHTML='<tr><td colspan="7" class="p-4">Mengambil data respons...</td></tr>';
+            responseCall('adminGetMonitoringResults',[adminSessionKey,filter,roster],data=>{
+                lastMonitoringData=data;
+                const downloadBtn=document.getElementById('downloadMonitorBtn');
+                if(downloadBtn) downloadBtn.disabled=!(data && Array.isArray(data.rows) && data.rows.length);
+                document.getElementById('monitorSummary').innerHTML=`<div class="rounded-lg bg-blue-50 p-3 text-center"><div class="text-xl font-bold text-blue-700">${data.total}</div><div class="text-xs text-blue-700">Peserta</div></div><div class="rounded-lg bg-green-50 p-3 text-center"><div class="text-xl font-bold text-green-700">${data.submitted}</div><div class="text-xs text-green-700">Sudah Mengirim</div></div><div class="rounded-lg bg-amber-50 p-3 text-center"><div class="text-xl font-bold text-amber-700">${data.notSubmitted}</div><div class="text-xs text-amber-700">Belum Mengirim</div></div><div class="rounded-lg bg-indigo-50 p-3 text-center"><div class="text-xl font-bold text-indigo-700">${data.averageScore==null?'-' : data.averageScore}</div><div class="text-xs text-indigo-700">Rata-rata Nilai</div></div><div class="rounded-lg bg-purple-50 p-3 text-center"><div class="text-xl font-bold text-purple-700">${data.highestScore==null?'-' : data.highestScore}</div><div class="text-xs text-purple-700">Nilai Tertinggi</div></div><div class="rounded-lg bg-orange-50 p-3 text-center"><div class="text-xl font-bold text-orange-700">${data.lowestScore==null?'-' : data.lowestScore}</div><div class="text-xs text-orange-700">Nilai Terendah</div></div>`;
+                const body=document.getElementById('monitorRows');body.innerHTML='';
+                if(!data.rows.length){body.innerHTML='<tr><td colspan="7" class="p-4 text-gray-500">Tidak ada data siswa untuk kelas ini.</td></tr>';return;}
+                data.rows.forEach((r,i)=>{
+                    const tr=document.createElement('tr');tr.className='border-t hover:bg-gray-50';
+                    const vals=[i+1,r.nis,r.name,r.score==null?'-':r.score,r.submitted?'SUDAH MENGIRIM':'BELUM MENGIRIM',r.submittedAt||'-',r.source||'-'];
+                    vals.forEach((v,j)=>{const td=document.createElement('td');td.className='p-3 whitespace-nowrap';td.textContent=v;if(j===3)td.className+=' font-bold '+(r.submitted?'text-green-700':'text-amber-700');tr.appendChild(td);});body.appendChild(tr);
+                });
+                showAdminMessage(`Monitoring ${data.subject} kelas ${data.className} berhasil diperbarui.`);
+            });
+        }
+
+    </script>
+</body>
+</html>
