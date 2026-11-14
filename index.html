@@ -268,7 +268,7 @@
         // CLOUDFLARE -> GOOGLE APPS SCRIPT JSONP BRIDGE
         // Membuat google.script.run kompatibel melalui URL Web App /exec.
         // ================================================================
-        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyK4pQPEp9gV-kG9EjaEeGYFFYTExVMqCkLpCBj-WIFYIwECizdGq7OykPe58NQrDUSLg/exec';
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwiM3zSBJJUIGaaXFpHSnB9dzNl9qHggDINXaXZwiliV4Oqn-dok6UWzVEM58kCnQxc/exec';
         function portalJsonp(method, args, success, failure) {
             const callbackName = 'portalCb_' + Date.now() + '_' + Math.floor(Math.random()*1000000);
             const script = document.createElement('script');
